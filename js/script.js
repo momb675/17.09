@@ -19,3 +19,20 @@ if (form) {
     form.reset();
   });
 }
+
+// --- Кнопка "Посмотреть программу" ---
+const programCta = document.querySelector('#program-cta');
+const programPreview = document.querySelector('#program-preview');
+
+if (programCta && programPreview) {
+  programCta.addEventListener('click', () => {
+    programPreview.hidden = !programPreview.hidden;
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'cta_click', {
+        button_name: 'program',
+        page_section: 'hero'
+      });
+    }
+  });
+}
