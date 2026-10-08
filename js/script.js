@@ -1,22 +1,22 @@
 'use strict';
-// Google Tag устанавливается отдельно в head каждой HTML-страницы.
 
-const form = document.querySelector('#contact-form');
-if (form) {
-  form.addEventListener('submit', (event) => {
+// --- Форма заявки: generate_lead ---
+const leadForm = document.querySelector('#lead-form');
+
+if (leadForm) {
+  leadForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    // Ручная отправка события form_submit в GA4
     if (typeof gtag === 'function') {
-      gtag('event', 'form_submit', {
-        form_id: 'contact-form',
-        form_name: 'Учебная форма обратной связи'
+      gtag('event', 'generate_lead', {
+        lead_source: 'contact_form'
       });
     }
 
-    document.querySelector('#form-status').textContent =
-      'Готово! Учебная форма проверена. Данные никуда не отправлены.';
-    form.reset();
+    const status = document.querySelector('#form-status');
+    if (status) {
+      status.textContent = 'Учебная форма проверена. Данные не отправлены.';
+    }
   });
 }
 
