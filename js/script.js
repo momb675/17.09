@@ -1,11 +1,39 @@
 'use strict';
 
-// --- Форма заявки: generate_lead ---
-const leadForm = document.querySelector('#lead-form');
+// --- Форма заявки: отправка в Apps Script + generate_lead ---
+(() => {
+  const leadForm = document.querySelector('#lead-form');
+  if (!leadForm) return;
 
-if (leadForm) {
+  const params = new URLSearchParams(window.location.search);
+
+  const defaults = {
+    utm_source: 'direct',
+    utm_medium: 'none',
+    utm_campaign: 'not_set'
+  };
+
+  for (const [key, fallback] of Object.entries(defaults)) {
+    const field = leadForm.elements.namedItem(key);
+    if (field) {
+      field.value = params.get(key)?.trim() || fallback;
+    }
+  }
+
+  const requestId = leadForm.elements.namedItem('request_id');
+
   leadForm.addEventListener('submit', (event) => {
-    event.preventDefault();
+    const action = leadForm.getAttribute('action') || '';
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(action)) {
+      event.preventDefault();
+      document.querySelector('#form-status').textContent =
+        'Сначала укажите URL веб-приложения Apps Script в атрибуте action.';
+      return;
+    }
+
+    if (!requestId.value) {
+      requestId.value = 'REQ-' + crypto.randomUUID().toUpperCase();
+    }
 
     if (typeof gtag === 'function') {
       gtag('event', 'generate_lead', {
@@ -13,12 +41,23 @@ if (leadForm) {
       });
     }
 
-    const status = document.querySelector('#form-status');
-    if (status) {
-      status.textContent = 'Учебная форма проверена. Данные не отправлены.';
-    }
+    document.querySelector('#form-status').textContent =
+      'Заявка отправлена. Номер: ' + requestId.value;
   });
-}
+
+  leadForm.addEventListener('reset', () => {
+    setTimeout(() => {
+      requestId.value = '';
+      for (const [key, fallback] of Object.entries(defaults)) {
+        const field = leadForm.elements.namedItem(key);
+        if (field) {
+          field.value = params.get(key)?.trim() || fallback;
+        }
+      }
+      document.querySelector('#form-status').textContent = 'Можно заполнить новую заявку.';
+    }, 0);
+  });
+})();
 
 // --- Кнопка "Посмотреть программу" ---
 const programCta = document.querySelector('#program-cta');
